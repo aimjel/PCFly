@@ -56,6 +56,7 @@ class Main extends PluginBase implements Listener{
         if(($p = $ev->getEntity()) instanceof Player){
             if(isset($this->fly[strtolower($p->getName())])){
                 $p->sendTip(TF::RED."Flight disabled");
+                $p->setGamemode(1); $p->setGamemode(0);
             }
         }
     }
