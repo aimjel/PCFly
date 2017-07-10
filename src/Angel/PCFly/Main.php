@@ -51,6 +51,7 @@ class Main extends PluginBase implements Listener{
                 if(isset($this->fly[strtolower($damager->getName())])){
                     $damager->sendTip(TF::RED."Flight disabled!");
                     $damager->setGamemode(1); $damager->setGamemode(0);
+                    unset($this->fly[strtolower($damager->getName())]);
                 }
             }
         }
@@ -58,6 +59,7 @@ class Main extends PluginBase implements Listener{
             if(isset($this->fly[strtolower($p->getName())])){
                 $p->sendTip(TF::RED."Flight disabled");
                 $p->setGamemode(1); $p->setGamemode(0);
+                unset($this->fly[strtolower($p->getName())]);
             }
         }
     }
