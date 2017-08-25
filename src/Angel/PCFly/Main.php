@@ -44,6 +44,11 @@ class Main extends PluginBase implements Listener{
     }
 
     public function onHits(EntityDamageEvent $ev){
+        if(($p = $ev->getEntity()) instanceof Player){
+            if($p->onGround() && isset($this->fly[strtolower($p->getName())])){
+                return false;
+            }
+        }
         if($ev instanceof EntityDamageByEntityEvent){
             $p = $ev->getEntity();
             $damager = $ev->getDamager();
@@ -66,12 +71,6 @@ class Main extends PluginBase implements Listener{
                 return true;
             }
             return false;
-        }
-        
-        if(($p = $ev->getEntity()) instanceof Player){
-            if($p->onGround() && isset($this->fly[strtolower($p->getName())])){
-                return false;
-            }
         }
     }
 }
