@@ -32,18 +32,25 @@ class Main extends PluginBase implements Listener{
                     $sender->setAllowFlight(false);
                     $sender->setGamemode(1); $sender->setGamemode(0);
                     $sender->sendMessage(TF::RED."Fly disabled!");
+                    return true;
                 } else {
                     $this->fly[strtolower($sender->getName())] = strtolower($sender->getName());
                     $sender->setAllowFlight(true);
                     $sender->sendMessage(TF::GREEN."Fly enabled!");
+                    return true;
                 }
             } else {
                 $sender->sendMessage(TF::RED."You dont have permission to use this command");
+                return false;
             }
         }
+        return true;
     }
 
     public function onHits(EntityDamageEvent $ev){
+        if($ev instanceof EntityDamageEvent::CAUSE_CONTACT){
+            return false;
+        }
         if($ev instanceof EntityDamageByEntityEvent){
             $p = $ev->getEntity();
             $damager = $ev->getDamager();
@@ -52,15 +59,20 @@ class Main extends PluginBase implements Listener{
                     $damager->sendTip(TF::RED."Flight disabled!");
                     $damager->setGamemode(1); $damager->setGamemode(0);
                     unset($this->fly[strtolower($damager->getName())]);
+                    return true;
                 }
+                return false;
             }
+            return false;
         }
         if(($p = $ev->getEntity()) instanceof Player){
             if(isset($this->fly[strtolower($p->getName())])){
                 $p->sendTip(TF::RED."Flight disabled");
                 $p->setGamemode(1); $p->setGamemode(0);
                 unset($this->fly[strtolower($p->getName())]);
+                return true;
             }
+            return false;
         }
     }
 }
