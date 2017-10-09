@@ -24,7 +24,7 @@ class Main extends PluginBase implements Listener{
         $this->getLogger()->info("PC Fly made by Angel(@VortexZMcPe)");
     }
 
-    public function onCommand(CommandSender $sender, Command $command, $label, array $args){
+    public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool{
         if(strtolower($command->getName()) == "fly"){
             if($sender->hasPermission("fly.command") || $sender->isOp()){
                 if(isset($this->fly[strtolower($sender->getName())])){
@@ -41,6 +41,7 @@ class Main extends PluginBase implements Listener{
                 $sender->sendMessage(TF::RED."You dont have permission to use this command");
             }
         }
+        return true;
     }
 
     public function onHits(EntityDamageEvent $ev){
