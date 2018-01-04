@@ -12,7 +12,6 @@ use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 
 use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 
 class Main extends PluginBase implements Listener{
 
@@ -44,30 +43,15 @@ class Main extends PluginBase implements Listener{
         return true;
     }
 
-    public function onHits(EntityDamageEvent $ev){
+    public function onHit(EntityDamageEvent $ev){
+        
         if(($p = $ev->getEntity()) instanceof Player){
-            if($ev->getCause() == 4 && isset($this->fly[strtolower($p->getName())])){
-                return false;
-            }
-        }
-        if($ev instanceof EntityDamageByEntityEvent){
-            $p = $ev->getEntity();
-            $damager = $ev->getDamager();
-            if($damager instanceof Player && $p instanceof Player){
-                if(isset($this->fly[strtolower($damager->getName())])){
-                    $damager->sendTip(TF::RED."Flight disabled!");
-                    $damager->setFlying(false);
-                    $damager->setAllowFlight(false);
-                    unset($this->fly[strtolower($damager->getName())]);
-                }
-            }
-        }
-        if(($p = $ev->getEntity()) instanceof Player){
-            if(isset($this->fly[strtolower($p->getName())])){
-                $p->sendTip(TF::RED."Flight disabled");
-                $p->setFlying(false);
+            
+            if($ev->getCause() !== 4 && isset($this->fly[$p->getLowerCaseName()])){
+                $p->sendPopup(TF::RED . 'Fly disabled');
+                $p->setFlying(true);
                 $p->setAllowFlight(false);
-                unset($this->fly[strtolower($p->getName())]);
+                unset($this->fly[$p->getLowerCaseName()]);
             }
         }
     }
