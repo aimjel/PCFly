@@ -2,7 +2,6 @@
 
 namespace Angel\PCFly;
 
-use pocketmine\Server;
 use pocketmine\Player;
 use pocketmine\entity\Entity;
 use pocketmine\event\Listener;
@@ -17,7 +16,7 @@ use pocketmine\event\entity\EntityDamageByEntityEvent;
 
 class Main extends PluginBase implements Listener{
 
-    public $fly = [];
+    private $fly = [];
     
     public function onEnable(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
@@ -30,11 +29,12 @@ class Main extends PluginBase implements Listener{
                 if(isset($this->fly[strtolower($sender->getName())])){
                     unset($this->fly[strtolower($sender->getName())]);
                     $sender->setAllowFlight(false);
-                    $sender->setGamemode(1); $sender->setGamemode(0);
+                    $sender->setFlying(false);
                     $sender->sendMessage(TF::RED."Fly disabled!");
                 } else {
                     $this->fly[strtolower($sender->getName())] = strtolower($sender->getName());
                     $sender->setAllowFlight(true);
+                    $sender->setFlying(true);
                     $sender->sendMessage(TF::GREEN."Fly enabled!");
                 }
             } else {
@@ -46,7 +46,7 @@ class Main extends PluginBase implements Listener{
 
     public function onHits(EntityDamageEvent $ev){
         if(($p = $ev->getEntity()) instanceof Player){
-            if($p->onGround() && isset($this->fly[strtolower($p->getName())])){
+            if($ev->getCause() == 4 && isset($this->fly[strtolower($p->getName())])){
                 return false;
             }
         }
@@ -56,22 +56,19 @@ class Main extends PluginBase implements Listener{
             if($damager instanceof Player && $p instanceof Player){
                 if(isset($this->fly[strtolower($damager->getName())])){
                     $damager->sendTip(TF::RED."Flight disabled!");
-                    $damager->setGamemode(1); $damager->setGamemode(0);
+                    $damager->setFlying(false);
+                    $damager->setAllowFlight(false);
                     unset($this->fly[strtolower($damager->getName())]);
-                    return true;
                 }
-                return false;
             }
-            return false;
         }
         if(($p = $ev->getEntity()) instanceof Player){
             if(isset($this->fly[strtolower($p->getName())])){
                 $p->sendTip(TF::RED."Flight disabled");
-                $p->setGamemode(1); $p->setGamemode(0);
+                $p->setFlying(false);
+                $p->setAllowFlight(false);
                 unset($this->fly[strtolower($p->getName())]);
-                return true;
             }
-            return false;
         }
     }
 }
