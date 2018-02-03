@@ -4,19 +4,12 @@ namespace Angel\PCFly;
 
 
 use pocketmine\Player;
-
 use pocketmine\utils\Config;
-
 use pocketmine\event\Listener;
-
 use pocketmine\command\Command;
-
 use pocketmine\plugin\PluginBase;
-
 use pocketmine\command\CommandSender;
-
 use pocketmine\utils\TextFormat as TF;
-
 use pocketmine\event\entity\EntityDamageEvent;
 
 
