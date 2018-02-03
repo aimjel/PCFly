@@ -12,7 +12,6 @@ use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\event\entity\EntityDamageEvent;
 
-
 /**
  * Class Main
  * @package Angel\PCFly
