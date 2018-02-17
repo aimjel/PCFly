@@ -11,6 +11,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\event\entity\EntityDamageEvent;
+uaw pocketmine\event\entity\EntityLevelChangeEvent;
 
 /**
  * Class Main
@@ -32,8 +33,8 @@ class Main extends PluginBase implements Listener{
             mkdir($folder);
         
         $this->cfg = is_file($folder . 'config.yml') ? new Config($folder . 'config.yml') : new Config($folder . 'config.yml', Config::YAML, [
-            'fly_command.true' => '&aFly enabled',
-            'fly_command.false' => '&cFly disabled!',
+            'fly_command.on' => '&aFly enabled',
+            'fly_command.off' => '&cFly disabled!',
             'fly_eventHit_disabled' => '&cNo Fly in PvP!',
 
         ]);
@@ -61,7 +62,8 @@ class Main extends PluginBase implements Listener{
             }
 
             $sender->setAllowFlight($sender->getAllowFlight() == false ? true : false);
-            $table = [true => 'true', false => 'false'];
+            $sender->setFlying($sender->getAllowFlight() == false ? true : false);
+            $table = [true => 'on', false => 'off'];
             $sender->sendMessage(TF::colorize($this->cfg->get('fly_command.'.$table[$sender->getAllowFlight()])));
             return true;
         }
@@ -79,9 +81,25 @@ class Main extends PluginBase implements Listener{
             if ($entity instanceof Player){
 
                 if ($entity->getAllowFlight() == true){
+                    $entity->setFlying(false);
                     $entity->setAllowFlight(false);
                     $entity->sendMessage(TF::colorize($this->cfg->get('fly_eventHit_disabled')));
                 }
+            }
+        }
+    }
+    
+    /**
+     * @param EntityLevelChangeEvent $ev
+     */
+    public function onLevelChange(EntityLevelChangeEvent $ev){
+        $entity = $ev->getEntity();
+        
+        if($entity instanceof Player){
+            
+            if($entity->getAllowFlight() == true){
+                $entity->setFlying(false);
+                $entity->setAllowFlight(false);
             }
         }
     }
