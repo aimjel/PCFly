@@ -1,4 +1,4 @@
 --- 
-fly_command.false: "&cFly disabled!" # Use &{Color_Index[12345678... etc]} to color!
-fly_command.true: "&aFly enabled"
+fly_command.off: "&cFly disabled!" # Use &{Color_Index[12345678... etc]} to color!
+fly_command.on: "&aFly enabled"
 fly_eventHit_disabled: "&cNo Fly in PvP!"
