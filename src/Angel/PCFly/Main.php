@@ -11,7 +11,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\command\CommandSender;
 use pocketmine\utils\TextFormat as TF;
 use pocketmine\event\entity\EntityDamageEvent;
-uaw pocketmine\event\entity\EntityLevelChangeEvent;
+use pocketmine\event\entity\EntityLevelChangeEvent;
 
 /**
  * Class Main
