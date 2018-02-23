@@ -54,7 +54,7 @@ class Main extends PluginBase implements Listener{
                 return false;
             }
 
-            if($sender->hasPermission('fly.command') == false){
+            if($sender->hasPermission('fly.command') == false or $sender->isOp() == false){
                 $sender->sendMessage(TextFormat::colorize($this->cfg->get('fly_noPermission')));
                 return false;
             }
