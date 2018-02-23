@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Angel\PCFly;
 
 use pocketmine\Player;
