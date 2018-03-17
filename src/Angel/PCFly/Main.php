@@ -73,6 +73,9 @@ class Main extends PluginBase implements Listener{
         $entity = $event->getEntity();
         if($event->getCause() !== $event::CAUSE_FALL){
             if($entity instanceof Player){
+                
+                if($entity->isCreative()) return;
+                
                 if($entity->getAllowFlight() == true){
                     $entity->setFlying(false);
                     $entity->setAllowFlight(false);
