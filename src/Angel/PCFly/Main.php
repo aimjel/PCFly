@@ -34,8 +34,6 @@ class Main extends PluginBase implements Listener{
 	        "fly_disable_switching_level" => true,
 	        "fly_disable_switching_levelMessage" => "Your fly has been disabled because of switching to another level({LEVEL_NAME})"
         ]);
-
-	    $this->getLogger()->info(TextFormat::GREEN . "PCFly has been enabled!");
 	    $this->getServer()->getPluginManager()->registerEvents($this, $this);
     }
 
