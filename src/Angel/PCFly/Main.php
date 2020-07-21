@@ -1,40 +1,58 @@
 <?php
 
+
 namespace Angel\PCFly;
 
-use pocketmine\Player;
-use pocketmine\utils\Config;
-use pocketmine\event\Listener;
 use pocketmine\command\Command;
-use pocketmine\utils\TextFormat;
-use pocketmine\plugin\PluginBase;
 use pocketmine\command\CommandSender;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityLevelChangeEvent;
+use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerToggleFlightEvent;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
+use pocketmine\Player;
+use pocketmine\plugin\PluginBase;
+use pocketmine\utils\TextFormat;
 
 /**
- * Class Main
+ * Class Mainn
  * @package Angel\PCFly
  */
-class Main extends PluginBase implements Listener{
+class Main extends PluginBase implements Listener {
 
-    /** @var Config */
-    private $cfg;
+    /** @var boolean */
+    private $pvp;
 
-    public function onEnable() : void{
+    public function onEnable() {
+        $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        $this->saveConfig();
+        $this->pvp = $this->getConfig()->get("disable-fly-on-pvp", true);
+    }
 
-        if(is_dir(($dir = $this->getDataFolder())) == false) mkdir($dir);
+    /**
+     * @param PlayerJoinEvent $event
+     */
+    public function onJoin(PlayerJoinEvent $event) : void{
+        $player = $event->getPlayer();
 
-        $this->cfg = new Config($dir."config.yml", Config::YAML, [
-	        "fly_command.on" => '&aFly enabled',
-	        "fly_command.off" => '&cFly disabled!',
-	        "fly_command_isCreative" => "&cYou cannot use this command in creative mode!",
-	        'fly_eventHit_disabled' => '&cNo Fly in PvP!',
-	        "fly_noPermission" => "&cYou don't have permission to use this command!",
-	        "fly_disable_switching_level" => true,
-	        "fly_disable_switching_levelMessage" => "Your fly has been disabled because of switching to another level({LEVEL_NAME})"
-        ]);
-	    $this->getServer()->getPluginManager()->registerEvents($this, $this);
+        if ($player->isSurvival(true)) {
+            $player->setAllowFlight($player->hasPermission("fly.command"));
+        }
+   }
+
+    /**
+     * @param PlayerToggleFlightEvent $event
+     */
+    public function onToggleFlight(PlayerToggleFlightEvent $event) : void{
+        $player = $event->getPlayer();
+
+        if ($player->isSurvival(true)){
+            if ($event->isFlying()){
+                $player->getLevel()->broadcastLevelSoundEvent($player, LevelSoundEventPacket::SOUND_LAUNCH);
+            }
+        }
     }
 
     /**
@@ -44,68 +62,67 @@ class Main extends PluginBase implements Listener{
      * @param array $args
      * @return bool
      */
-    public function onCommand(CommandSender $sender, Command $command, string $label, array $args) : bool{
+    public function onCommand(CommandSender $sender, Command $command, string $label, array $args): bool {
+
         if(strtolower($command->getName()) == "fly"){
 
-            if(!$sender instanceof Player){
-                $sender->sendMessage(TextFormat::RED . 'This game is only to be used in-game!');
-                return false;
+            if(!($sender instanceof Player)){
+                return true;
             }
 
-            if(!$sender->hasPermission("fly.command")){
-                $sender->sendMessage(TextFormat::colorize($this->cfg->get("fly_noPermission")));
-                return false;
+            if(!$command->testPermission($sender)){
+                return true;
             }
 
-	        if($sender->isCreative()){
-            	$sender->sendMessage(TextFormat::colorize($this->cfg->get("fly_command_isCreative")));
-            	return false;
-	        }
+            if ($sender->isCreative(true)){
+                $sender->sendMessage(TextFormat::DARK_RED."You cannot use /fly in creative");
+                return true;
+            }
 
-            $value = !$sender->getAllowFlight();
-            $sender->setAllowFlight($value);
-            $sender->setFlying($value);
-
-            $table = [true => "on", false => "off"];
-            $sender->sendMessage(TextFormat::colorize($this->cfg->get('fly_command.' . $table[$value])));
-            return true;
+            if (!$sender->getAllowFlight()){
+                $sender->setAllowFlight(true);
+                $sender->sendMessage(TextFormat::GREEN."Your flight has been enabled");
+            } else {
+                $sender->setAllowFlight(false);
+                $sender->setFlying(false);
+                $sender->sendMessage(TextFormat::RED."Your flight has been disabled!");
+            }
         }
-        return true;
-    }
 
-    /**
-     * @param EntityDamageEvent $event
-     */
-    public function onDamage(EntityDamageEvent $event) : void{
-    	$entity = $event->getEntity();
-
-        if($entity instanceof Player){
-
-        	$rejectedCauses = [$event::CAUSE_STARVATION, $event::CAUSE_VOID, $event::CAUSE_FALL];
-
-        	if(!in_array($event->getCause(), $rejectedCauses)){
-		        $entity->setFlying(false);
-		        $entity->setAllowFlight(false);
-		        $entity->sendMessage(TextFormat::colorize($this->cfg->get("fly_eventHit_disabled")));
-	        }
-        }
+        return false;
     }
 
     /**
      * @param EntityLevelChangeEvent $event
      */
     public function onLevelChange(EntityLevelChangeEvent $event) : void{
-
-    	if(((bool) $this->cfg->get("fly_disable_switching_level")) == false) return;
-
         $entity = $event->getEntity();
-        if($entity instanceof Player){
-            if($entity->getAllowFlight() == true){
-	            $entity->setFlying(false);
-	            $entity->setAllowFlight(false);
+        if ($entity instanceof Player){
+            if ($entity->getAllowFlight()){
+                $entity->setFlying(false);
+            }
+        }
+    }
 
-                $msg = str_replace("{LEVEL_NAME}", $event->getTarget()->getName(), $this->cfg->get("fly_disable_switching_levelMessage"));
-                $entity->sendMessage($msg);
+    /**
+     * @param EntityDamageEvent $event
+     */
+    public function onEntityDamage(EntityDamageEvent $event) : void{
+        if (!$this->pvp){
+            return;
+        }
+
+        if ($event instanceof EntityDamageByEntityEvent){
+            $victim = $event->getEntity();
+            $attacker = $event->getDamager();
+
+            if($victim instanceof Player and $attacker instanceof Player) {
+                foreach ([$victim, $attacker] as $player){
+                    if ($player->getAllowFlight()){
+                        $player->setAllowFlight(false);
+                        $player->setFlying(false);
+                    }
+                }
             }
         }
     }
